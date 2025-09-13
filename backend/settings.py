@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-zn2q0-v)op!&fshrbs#l2v5wy&zo*ix^(&o=29nn#^nx=5!jdf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://sevenadin-store-backend.onrender.com/','*']
 
 
 # Application definition
