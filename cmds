@@ -1,0 +1,21 @@
+activate venv :
+source .venv/bin/activate
+
+deactivate venv 
+deactivate
+
+pip freeze > requirements.txt
+
+python manage.py runserver
+
+python manage.py makemigrations
+python manage.py migrate
+
+
+
+
+# backup data as json 
+python manage.py dumpdata > dump.json
+# execute the data form json 
+python manage.py loaddata dump.json
+
