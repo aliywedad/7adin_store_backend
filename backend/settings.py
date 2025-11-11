@@ -24,10 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-zn2q0-v)op!&fshrbs#l2v5wy&zo*ix^(&o=29nn#^nx=5!jdf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['https://sevenadin-store-backend.onrender.com/','*']
+ALLOWED_HOSTS = ['*']
 
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'run-every-minute': {
+        'task': 'myapp.tasks.my_scheduled_task',
+        'schedule': crontab(minute='*'),
+    },
+}
 
 # Application definition
 
@@ -41,27 +49,35 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "store",
+    'django_crontab',
+
 ]
 
- 
+
+CRONJOBS = [
+    ('0 0 * * *', 'myapp.cron.my_scheduled_task'),
+]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # must be first
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+
+
+
 APPEND_SLASH=False
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:4200",   # Angular dev server
-#     "http://127.0.0.1:4200",  # Alternative localhost
-#     "https://your-frontend-domain.com",  # Production domain
-# ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+    "https://ma3rad.vercel.app",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -90,21 +106,51 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
  
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': '7adin$default',
+#         'USER': '7adin',
+#         'PASSWORD': 'store',
+#         'HOST': '7adin.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#                 'OPTIONS': {
+#             'charset': 'utf8mb4',   
+#         },
+#     }
+# }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': '7adin$test',
+#         'USER': '7adin',
+#         'PASSWORD': 'test-test',
+#         'HOST': '7adin.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#                 'OPTIONS': {
+#             'charset': 'utf8mb4',   
+#         },
+#     }
+# }
+
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'store',
-        # 'USER': 'root',
-        # 'PASSWORD': 'P@55word',
-        # 'HOST': 'localhost',
-        # 'PORT': '3306',
-        #         'OPTIONS': {
-        #     'charset': 'utf8mb4',   
-        # },
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'store',
+        'USER': 'root',
+        'PASSWORD': 'P@55word',
+        'HOST': 'localhost',
+        'PORT': '3306',
+                'OPTIONS': {
+            'charset': 'utf8mb4',   
+        },
     }
 }
 
-DATABASES['default']=dj_database_url.parse('postgresql://store_v6ga_user:JuU2CqVFZlFBlrfXz9KZDPORuEDF7yvo@dpg-d32tt6buibrs73a67v8g-a.oregon-postgres.render.com/store_v6ga')
+
+# DATABASES['default']=dj_database_url.parse('postgresql://store_v6ga_user:JuU2CqVFZlFBlrfXz9KZDPORuEDF7yvo@dpg-d32tt6buibrs73a67v8g-a.oregon-postgres.render.com/store_v6ga')
 
 
 # Password validation
