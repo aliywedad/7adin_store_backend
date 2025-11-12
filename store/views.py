@@ -1176,7 +1176,7 @@ def add_products(request):
             name = sale.get("name")
             purchase_price = int(sale.get("purchase_price"))
             sale_price = int(sale.get("sale_price"))
-            stock_quantity = int(sale.get("stock_quantity"))
+            stock_quantity = float(sale.get("stock_quantity"))
 
             # Create product with supplier if available
             product = Product.objects.create(

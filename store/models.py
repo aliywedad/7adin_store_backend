@@ -128,7 +128,7 @@ class ProductTrackUpdate(models.Model):
         return f"{self.product.name} - {self.field_name} changed on {self.updated_at.strftime('%Y-%m-%d %H:%M')}"
 class Bills(models.Model):
     phone = models.CharField(max_length=50, blank=True, null=True)
-    balance = models.IntegerField(default=0)
+    balance = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Sales(models.Model):
