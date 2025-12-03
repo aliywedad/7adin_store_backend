@@ -53,6 +53,10 @@ INSTALLED_APPS = [
 
 ]
 
+DEBUG = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 CRONJOBS = [
     ('0 0 * * *', 'myapp.cron.my_scheduled_task'),
@@ -138,7 +142,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'store',
+        'NAME': '7adin',
         'USER': 'root',
         'PASSWORD': 'P@55word',
         'HOST': 'localhost',
