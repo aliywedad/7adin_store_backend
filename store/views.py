@@ -1577,36 +1577,21 @@ class DepositsPaymentViewSet(viewsets.ModelViewSet):
                         )
 
                         # Increase balance by type
+                        delta = payment.balance if payment.isDeposit else -payment.balance
+
                         if type == 'cash':
-                            if payment.isDeposit:
-                                new_treasury.balance += payment.balance
-                            else:
-                                new_treasury.balance -= payment.balance
+                            new_treasury.balance += delta
                         elif type == 'bankily':
-                            if payment.isDeposit:
-                                new_treasury.Bankily_balance += payment.balance
-                            else:
-                                new_treasury.Bankily_balance -= payment.balance
+                            new_treasury.Bankily_balance += delta
                         elif type == 'sedad':
-                            if payment.isDeposit:
-                                new_treasury.Sedad_balance += payment.balance
-                            else:
-                                new_treasury.Sedad_balance -= payment.balance
+                            new_treasury.Sedad_balance += delta
                         elif type == 'bimBank':
-                            if payment.isDeposit:
-                                new_treasury.BimBank_balance += payment.balance
-                            else:
-                                new_treasury.BimBank_balance -= payment.balance
+                            new_treasury.BimBank_balance += delta
                         elif type == 'masrivy':
-                            if payment.isDeposit:
-                                new_treasury.Masrivy_balance += payment.balance
-                            else:
-                                new_treasury.Masrivy_balance -= payment.balance
+                            new_treasury.Masrivy_balance += delta
                         elif type == 'click':
-                            if payment.isDeposit:
-                                new_treasury.Click_balance += payment.balance
-                            else:
-                                new_treasury.Click_balance -= payment.balance
+                            new_treasury.Click_balance += delta
+
 
                         new_treasury.save()
                         try:
@@ -1853,19 +1838,20 @@ class SuppliersDebtsPaymentViewSet(viewsets.ModelViewSet):
                         )
 
                         # Increase balance by type
-                        if type == 'cash':
-                            new_treasury.balance += payment.balance
-                        elif type == 'bankily':
-                            new_treasury.Bankily_balance += payment.balance
-                        elif type == 'sedad':
-                            new_treasury.Sedad_balance += payment.balance
-                        elif type == 'bimBank':
-                            new_treasury.BimBank_balance += payment.balance
-                        elif type == 'masrivy':
-                            new_treasury.Masrivy_balance += payment.balance
-                        elif type == 'click':
-                            new_treasury.Click_balance += payment.balance
+                        delta = payment.balance if payment.isDeposit else -payment.balance
 
+                        if type == 'cash':
+                            new_treasury.balance += delta
+                        elif type == 'bankily':
+                            new_treasury.Bankily_balance += delta
+                        elif type == 'sedad':
+                            new_treasury.Sedad_balance += delta
+                        elif type == 'bimBank':
+                            new_treasury.BimBank_balance += delta
+                        elif type == 'masrivy':
+                            new_treasury.Masrivy_balance += delta
+                        elif type == 'click':
+                            new_treasury.Click_balance += delta
                         new_treasury.save()
                         try:
                             # print("sending message ....")
