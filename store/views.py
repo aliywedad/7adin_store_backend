@@ -1176,7 +1176,7 @@ def add_products(request):
             name = sale.get("name")
             purchase_price = int(sale.get("purchase_price"))
             sale_price = int(sale.get("sale_price"))
-            stock_quantity = int(sale.get("stock_quantity"))
+            stock_quantity = float(sale.get("stock_quantity"))
 
             # Create product with supplier if available
             product = Product.objects.create(
@@ -1958,18 +1958,24 @@ class DebtsPaymentViewSet(viewsets.ModelViewSet):
                         )
 
                         # Increase balance by type
+                        # Update treasury depending on deposit or payment
                         if type == 'cash':
-                            new_treasury.balance += payment.balance
+                            new_treasury.balance += -payment.balance if payment.isDeposit else payment.balance
+
                         elif type == 'bankily':
-                            new_treasury.Bankily_balance += payment.balance
+                            new_treasury.Bankily_balance += -payment.balance if payment.isDeposit else payment.balance
+
                         elif type == 'sedad':
-                            new_treasury.Sedad_balance += payment.balance
+                            new_treasury.Sedad_balance += -payment.balance if payment.isDeposit else payment.balance
+
                         elif type == 'bimBank':
-                            new_treasury.BimBank_balance += payment.balance
+                            new_treasury.BimBank_balance += -payment.balance if payment.isDeposit else payment.balance
+
                         elif type == 'masrivy':
-                            new_treasury.Masrivy_balance += payment.balance
+                            new_treasury.Masrivy_balance += -payment.balance if payment.isDeposit else payment.balance
+
                         elif type == 'click':
-                            new_treasury.Click_balance += payment.balance
+                            new_treasury.Click_balance += -payment.balance if payment.isDeposit else payment.balance
 
                         new_treasury.save()
                         try:
