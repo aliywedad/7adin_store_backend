@@ -40,6 +40,7 @@ from django.utils.dateparse import parse_date
 from django.db.models import Sum
 from .models import Sales
 from .serializers import SalesSerializer
+from datetime import date
 
 @api_view(['POST'])
 def filter_sales(request):
@@ -84,6 +85,34 @@ def filter_sales(request):
     })
 
 
+@api_view(['POST'])
+def today_sales(request):
+    product_id = request.data.get("product", 0)
+
+    # Start with today's sales only
+    today = date.today()
+    sales = Sales.objects.filter(created_at__date=today).order_by('-created_at')
+
+    # Optional product filtering
+    if product_id and int(product_id) != 0:
+        prod = Product.objects.filter(id=product_id).first()
+        if prod:
+            sales = sales.filter(product=prod)
+
+    # Aggregate totals
+    totals = sales.aggregate(
+        total_price=Sum("price_total") or 0,
+        total_benefit=Sum("benefit") or 0
+    )
+
+    serializer = SalesSerializer(sales, many=True)
+
+    return Response({
+        "status": True,
+        "results": serializer.data,
+        "total_price": totals["total_price"] or 0,
+        "total_benefit": totals["total_benefit"] or 0
+    })
 @api_view(["GET"])
 def sales_stats(request):
     today = now().date()
