@@ -1917,7 +1917,6 @@ class DebtsPaymentViewSet(viewsets.ModelViewSet):
             else:
                 newBalance=debt.balance - payment.balance
             debt.balance = max(0, newBalance)  # prevent negative balance
-            
             # If balance is zero, mark as done
             if debt.balance == 0:
                 debt.done = True
@@ -1947,7 +1946,7 @@ class DebtsPaymentViewSet(viewsets.ModelViewSet):
                     after=total_balance + payment.balance
                     if payment.isDeposit:
                         trans_type='OUT'
-                        after=total_balance  
+                        after=total_balance - payment.balance
                         reason=f"تم إيداع {payment.balance} إلى دين {debt.name} عن طريق {type}"
                     trans=Transaction.objects.create(
                         type=trans_type,
@@ -1977,22 +1976,22 @@ class DebtsPaymentViewSet(viewsets.ModelViewSet):
                         # Increase balance by type
                         # Update treasury depending on deposit or payment
                         if type == 'cash':
-                            new_treasury.balance += -payment.balance if payment.isDeposit==False else 0
+                            new_treasury.balance += -payment.balance if payment.isDeposit else payment.balance
 
                         elif type == 'bankily':
-                            new_treasury.Bankily_balance += -payment.balance if payment.isDeposit==False else 0
+                            new_treasury.Bankily_balance += -payment.balance if payment.isDeposit else payment.balance
 
                         elif type == 'sedad':
-                            new_treasury.Sedad_balance += -payment.balance if payment.isDeposit==False else 0
+                            new_treasury.Sedad_balance += -payment.balance if payment.isDeposit else payment.balance
 
                         elif type == 'bimBank':
-                            new_treasury.BimBank_balance += -payment.balance if payment.isDeposit==False else 0
+                            new_treasury.BimBank_balance += -payment.balance if payment.isDeposit else payment.balance
 
                         elif type == 'masrivy':
-                            new_treasury.Masrivy_balance += -payment.balance if payment.isDeposit==False else 0
+                            new_treasury.Masrivy_balance += -payment.balance if payment.isDeposit else payment.balance
 
                         elif type == 'click':
-                            new_treasury.Click_balance += -payment.balance if payment.isDeposit==False else 0
+                            new_treasury.Click_balance += -payment.balance if payment.isDeposit else payment.balance
 
                         new_treasury.save()
                         try:
@@ -2006,7 +2005,7 @@ class DebtsPaymentViewSet(viewsets.ModelViewSet):
                 # msg=f"تم تسديد {payment.balance} من أصل {debt.initAmount} من دين {debt.name} عن طريق {payment.type} و الباقي {debt.balance}"
                 # sendTelgramMessage(msg)
 
-        
+          
         
         
         
