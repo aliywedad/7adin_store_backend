@@ -40,6 +40,8 @@ urlpatterns = [
     path("registerSales/", registerSales, name="registerSales"),
     path("filter_sales/", filter_sales, name="filter_sales"),
     path("today_sales/", today_sales, name="today_sales"),
+    path("getLowStock/", getLowStock, name="getLowStock"),
+    path("getLowStockCount/", getLowStockCount, name="getLowStockCount"),
     
     path("registerSales_debt/", registerSales_debt, name="registerSales_debt"),
     path("deposit_to_treasury/", deposit_to_treasury, name="deposit_to_treasury"),

@@ -694,13 +694,15 @@ def registerSales(request):
                 price_unit=price,
                 price_total=price * quantity,
                 benefit=benefit,
-                quantity=quantity,
+                quantity= round(quantity, 3),
                 product=product,
                 type=type,
                 user=user
             )
             created_sales.append(sale_obj.id)
-            product.stock_quantity=product.stock_quantity-quantity
+            remainingStock = product.stock_quantity - quantity
+            remainingStock = round(remainingStock, 3)
+            product.stock_quantity=remainingStock
             product.save()
             treasury=Treasury.objects.latest('last_update')
             total_balance=0
@@ -2006,7 +2008,21 @@ class DebtsPaymentViewSet(viewsets.ModelViewSet):
                 # sendTelgramMessage(msg)
 
           
-        
+@api_view(["GET"])
+def getLowStock(request):
+    stock= Product.objects.filter(stock_quantity__lte=5).order_by('stock_quantity')
+    serializer = ProductSerializer(stock, many=True)
+    return Response(
+        {"prods": serializer.data},
+        status=status.HTTP_200_OK
+    )
+@api_view(["GET"])
+def getLowStockCount(request):
+    stock= Product.objects.filter(stock_quantity__lte=5).order_by('stock_quantity').count()
+    return Response(
+        {"prods": stock},
+        status=status.HTTP_200_OK
+    )
         
         
 @api_view(["GET"])
