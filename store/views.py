@@ -90,7 +90,11 @@ def today_sales(request):
     product_id = request.data.get("product", 0)
 
     # Start with today's sales only
-    today = date.today()
+
+    today = request.data.get("date") 
+    if not today or today=="":
+        today = now().date()
+    print("date is ",today)
     sales = Sales.objects.filter(created_at__date=today).order_by('-created_at')
 
     # Optional product filtering
@@ -113,6 +117,10 @@ def today_sales(request):
         "total_price": totals["total_price"] or 0,
         "total_benefit": totals["total_benefit"] or 0
     })
+
+
+
+
 @api_view(["GET"])
 def sales_stats(request):
     today = now().date()
