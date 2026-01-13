@@ -95,7 +95,7 @@ def today_sales(request):
     if not today or today=="":
         today = now().date()
     print("date is ",today)
-    sales = Sales.objects.filter(created_at__date=today).order_by('-created_at')
+    sales = Sales.objects.filter(created_at__date=today,canceled=False).order_by('-created_at')
 
     # Optional product filtering
     if product_id and int(product_id) != 0:
