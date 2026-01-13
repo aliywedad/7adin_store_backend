@@ -20,6 +20,7 @@ router.register(r'SuppliersDebts', SuppliersDebtsViewSet)
 router.register(r'SuppliersDebtsPayment', SuppliersDebtsPaymentViewSet)
 router.register(r'EmployeeTransaction', EmployeeTransactionViewSet)
 router.register(r'product-updates', ProductTrackUpdateViewSet, basename='product-updates')
+router.register(r'MonthlyExpenses', MonthlyExpensesViewSet, basename='MonthlyExpenses')
 
 
 urlpatterns = [
@@ -59,7 +60,7 @@ urlpatterns = [
     
     path("getPaymentBySupplierDebt/", getPaymentBySupplierDebt, name="getPaymentBySupplierDebt"),
     
-    
-    
+    path('getSalesSummarywithMonthlyExpenses/', getSalesSummarywithMonthlyExpenses, name='getSalesSummarywithMonthlyExpenses'),
+     
     path('api/', include(router.urls)),
 ]

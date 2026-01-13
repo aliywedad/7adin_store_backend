@@ -31,7 +31,7 @@ def hash(password: str) -> str:
     md5_hash.update(password.encode('utf-8'))
     return md5_hash.hexdigest()
 
-
+ 
 
 
 from rest_framework.decorators import api_view
@@ -48,12 +48,12 @@ def filter_sales(request):
     date_from = request.data.get("date_from", "")
     date_to = request.data.get("date_to", "")
 
-    sales = Sales.objects.all().order_by('-created_at')
+    sales = Sales.objects.filter(canceled=False).order_by('-created_at')
 
     # Filter by product if provided and not 0
     if product_id and int(product_id) != 0:
         prod=Product.objects.filter(id=product_id).first()
-        sales = sales.filter(product=prod)
+        sales = sales.filter(product=prod,canceled=False)
 
     # Filter by date range if both exist
     if date_from and date_to:
@@ -66,7 +66,7 @@ def filter_sales(request):
                 from_date, to_date = to_date, from_date
 
             if from_date and to_date:
-                sales = sales.filter(created_at__date__range=[from_date, to_date])
+                sales = sales.filter(created_at__date__range=[from_date, to_date],canceled=False)
         except Exception as e:
             return Response({"status": False, "error": str(e)})
 
@@ -1370,6 +1370,13 @@ class SupplierViewSet(viewsets.ModelViewSet):
         return Supplier.objects.all().order_by('-created_at')
     permission_classes = [HasTokenPermission]
     
+class MonthlyExpensesViewSet(viewsets.ModelViewSet):
+    queryset = MonthlyExpenses.objects.all()
+    serializer_class = MonthlyExpensesSerializer
+    def get_queryset(self):
+        return MonthlyExpenses.objects.all().order_by('-created_at')
+    permission_classes = [HasTokenPermission]
+    
     
 
 class EmployeeTransactionViewSet(viewsets.ModelViewSet):
@@ -2055,3 +2062,37 @@ def get_total_supplires_balance_balance(request):
         {"total_balance": total_balance},
         status=status.HTTP_200_OK
     )
+from django.db.models.functions import ExtractYear, ExtractMonth
+
+    
+@api_view(["GET"])
+def getSalesSummarywithMonthlyExpenses(request):
+ 
+    monthly_sales = Sales.objects.filter(canceled=False).annotate(
+        year=ExtractYear('created_at'),
+        month=ExtractMonth('created_at')
+    ).values('year', 'month').annotate(
+        total_benefit=Sum('benefit'),
+        total_sales=Count('id')
+    ).order_by('-year', '-month')
+    
+    # Format results
+    formatted_results = []
+    for item in monthly_sales:
+        formatted_results.append({
+            "year": item['year'],
+            "month": item['month'],
+            "total_benefit": float(item['total_benefit'] or 0),
+            "total_sales": item['total_sales']
+        })
+    
+    return Response({
+        "monthly_summary": list(formatted_results),
+        "count": len(formatted_results)
+    }, status=status.HTTP_200_OK)
+    
+    
+    
+    
+ 
+    

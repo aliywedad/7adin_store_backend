@@ -252,3 +252,148 @@ class Backup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     size = models.TextField(blank=True, null=True)
 
+
+
+
+
+
+
+
+
+
+
+
+
+from django.db import models
+from django.core.validators import MinValueValidator
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
+class MonthlyExpenses(models.Model):
+    """
+    Model to track monthly expenses with detailed expense items
+    """
+    MONTH_CHOICES = [
+        (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
+        (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
+        (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')
+    ]
+    
+    month = models.PositiveSmallIntegerField(
+        choices=MONTH_CHOICES,
+        help_text="Month number (1-12)"
+    )
+    
+    year = models.PositiveIntegerField(
+        help_text="Year of the expenses"
+    )
+    
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        validators=[MinValueValidator(0)],
+        help_text="Total amount of expenses for the month"
+    )
+    
+    expenses = models.JSONField(
+        default=list,
+        encoder=DjangoJSONEncoder,
+        help_text="List of expense items in JSON format"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Monthly Expense"
+        verbose_name_plural = "Monthly Expenses"
+        unique_together = ['month', 'year']
+        ordering = ['-year', '-month']
+    
+    def __str__(self):
+        return f"{self.get_month_display()} {self.year} - ${self.total}"
+    
+    def save(self, *args, **kwargs):
+        # Calculate total from expenses if not provided
+        if not self.total and self.expenses:
+            self.total = sum(float(expense.get('bill', 0)) for expense in self.expenses)
+        super().save(*args, **kwargs)
+    
+    @property
+    def formatted_expenses(self):
+        """Return expenses as a nicely formatted string"""
+        if not self.expenses:
+            return "No expenses"
+        
+        items = []
+        for expense in self.expenses:
+            label = expense.get('label', 'Unlabeled')
+            amount = expense.get('bill', 0)
+            items.append(f"{label}: ${amount}")
+        
+        return "; ".join(items)
+    
+    @classmethod
+    def get_current_month_expenses(cls):
+        """Get expenses for current month"""
+        import datetime
+        now = datetime.datetime.now()
+        return cls.objects.filter(month=now.month, year=now.year).first()
+    
+    def add_expense(self, label, bill):
+        """Helper method to add an expense item"""
+        if not isinstance(self.expenses, list):
+            self.expenses = []
+        
+        self.expenses.append({
+            'label': label,
+            'bill': float(bill)
+        })
+        self.save()
+    
+    def remove_expense(self, index):
+        """Helper method to remove an expense by index"""
+        if isinstance(self.expenses, list) and 0 <= index < len(self.expenses):
+            del self.expenses[index]
+            self.save()
+            return True
+        return False
+    
+    @property
+    def expense_categories(self):
+        """Get all unique expense categories/labels"""
+        if not self.expenses:
+            return []
+        
+        categories = set()
+        for expense in self.expenses:
+            label = expense.get('label')
+            if label:
+                categories.add(label)
+        
+        return list(categories)
+    
+    @property
+    def expenses_by_category(self):
+        """Group expenses by category"""
+        if not self.expenses:
+            return {}
+        
+        grouped = {}
+        for expense in self.expenses:
+            label = expense.get('label', 'Uncategorized')
+            bill = float(expense.get('bill', 0))
+            
+            if label in grouped:
+                grouped[label].append(bill)
+            else:
+                grouped[label] = [bill]
+        
+        return grouped
+    
+    @property
+    def total_by_category(self):
+        """Calculate total by category"""
+        grouped = self.expenses_by_category
+        return {category: sum(bills) for category, bills in grouped.items()}

@@ -96,3 +96,64 @@ class ProductTrackUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductTrackUpdate
         fields = '__all__'
+        
+        
+        
+        
+        
+        
+        
+        
+   
+from .models import MonthlyExpenses
+
+class ExpenseItemSerializer(serializers.Serializer):
+    label = serializers.CharField(max_length=200)
+    bill = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+class MonthlyExpensesSerializer(serializers.ModelSerializer):
+    month_display = serializers.CharField(source='get_month_display', read_only=True)
+    formatted_expenses = serializers.CharField(read_only=True)
+    expenses = serializers.ListField(
+        child=ExpenseItemSerializer(),
+        required=False,
+        default=list
+    )
+    
+    class Meta:
+        model = MonthlyExpenses
+        fields = [
+            'id', 'month', 'year', 'month_display', 'total', 
+            'expenses', 'formatted_expenses', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+    
+    def validate_expenses(self, value):
+        """Validate expenses list"""
+        for expense in value:
+            if 'label' not in expense or 'bill' not in expense:
+                raise serializers.ValidationError(
+                    "Each expense must have 'label' and 'bill' keys"
+                )
+            if float(expense['bill']) < 0:
+                raise serializers.ValidationError(
+                    "Bill amount cannot be negative"
+                )
+        return value
+    
+    def create(self, validated_data):
+        # Calculate total from expenses
+        expenses = validated_data.get('expenses', [])
+        total = sum(float(expense['bill']) for expense in expenses)
+        validated_data['total'] = total
+        
+        return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        # Recalculate total if expenses are updated
+        if 'expenses' in validated_data:
+            expenses = validated_data['expenses']
+            total = sum(float(expense['bill']) for expense in expenses)
+            validated_data['total'] = total
+        
+        return super().update(instance, validated_data)
