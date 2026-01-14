@@ -2064,10 +2064,9 @@ def get_total_supplires_balance_balance(request):
     )
 from django.db.models.functions import ExtractYear, ExtractMonth
 
-    
 @api_view(["GET"])
 def getSalesSummarywithMonthlyExpenses(request):
- 
+    
     monthly_sales = Sales.objects.filter(canceled=False).annotate(
         year=ExtractYear('created_at'),
         month=ExtractMonth('created_at')
@@ -2079,20 +2078,42 @@ def getSalesSummarywithMonthlyExpenses(request):
     # Format results
     formatted_results = []
     for item in monthly_sales:
+        # Get MonthlyExpenses for the month
+        expense_obj = MonthlyExpenses.objects.filter(
+            month=item['month'], 
+            year=item['year']
+        ).first()
+        
+        # If no expenses exist, create an empty one
+        if not expense_obj:
+            try:
+                expense_obj = MonthlyExpenses.objects.create(
+                    month=item['month'],
+                    year=item['year'],
+                    total=0,
+                    expenses=[]
+                )
+            except Exception as e:
+                print(f"Error creating MonthlyExpenses: {e}")
+                expense_obj = None
+        
+        # Get expense ID
+        expense_id = expense_obj.id if expense_obj else None
+        
+        # Calculate total expenses
+        total_expenses = expense_obj.total if expense_obj else 0
+        
         formatted_results.append({
             "year": item['year'],
             "month": item['month'],
+            "id": expense_id,  # MonthlyExpenses ID
             "total_benefit": float(item['total_benefit'] or 0),
-            "total_sales": item['total_sales']
+            "total_sales": item['total_sales'],
+            "total_expenses": float(total_expenses),
+            "net_profit": float(item['total_benefit'] or 0) - float(total_expenses)
         })
     
     return Response({
-        "monthly_summary": list(formatted_results),
+        "monthly_summary": formatted_results,
         "count": len(formatted_results)
     }, status=status.HTTP_200_OK)
-    
-    
-    
-    
- 
-    
