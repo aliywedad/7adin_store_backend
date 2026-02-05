@@ -45,13 +45,16 @@ from datetime import date
 @api_view(['POST'])
 def filter_sales(request):
     product_id = request.data.get("product", 0)
-    date_from = request.data.get("date_from", "")
-    date_to = request.data.get("date_to", "")
+    date_from = request.data.get("date_from")
+    date_to = request.data.get("date_to")
     today = timezone.localdate()
 
     # Default dates to today if missing
-    from_date = parse_date(date_from) if date_from else today
-    to_date = parse_date(date_to) if date_to else today
+    from_date = parse_date(date_from) if date_from  else today
+    to_date = parse_date(date_to) if date_to  else today
+    # Auto-swap if reversed
+    if from_date > to_date:
+        from_date, to_date = to_date, from_date
 
     sales = Sales.objects.filter(canceled=False).order_by('-created_at')
 
