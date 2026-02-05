@@ -176,17 +176,20 @@ def sales_stats(request):
 def get_transactions(request):
     try:
         type = request.data.get("type")
+        date=request.data.get("date")
         ten_days_ago = timezone.now() - timedelta(days=10)
+        if date =="":
+            date = ten_days_ago
 
         # Base queryset: only transactions from the last 10 days
         if type and type != "all":
             transactions = Transaction.objects.filter(
                 channel=type,
-                created_at__gte=ten_days_ago
+                created_at__gte=date
             ).order_by('-created_at')
         else:
             transactions = Transaction.objects.filter(
-                created_at__gte=ten_days_ago
+                created_at__gte=date
             ).order_by('-created_at')
 
         serializer = TransactionSerializer(transactions, many=True)
